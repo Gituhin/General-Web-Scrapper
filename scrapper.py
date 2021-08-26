@@ -1,10 +1,13 @@
+# contains code for web scraper integrated with Google Sheets via Google Sheets API
+# To integrate with any google sheet just copy the sheet ID below
+
 from bs4 import BeautifulSoup
 import requests
-#from editor import g_sheets, auth_sheet
 import sys
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 
+#function to call and authenticate the API
 def auth_sheet():
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
@@ -15,6 +18,7 @@ def auth_sheet():
     sheet = build('sheets', 'v4', credentials=creds).spreadsheets()
     return sheet
 
+# class to store elementary functions of the sheets
 class g_sheets:
     def __init__(self, doc, ID):
         self.ID = ID
@@ -38,16 +42,12 @@ class g_sheets:
         except KeyError:
             return None
 
+#Scrapper begins
 
-
-
-
-
-SPREADSHEET_ID = '1meMEPam1wbXoYFT0ajHj735GGUsKMaa0b5rrMqrN16E'
-SID_MAIL = '13NX1q6sgU-YJJxhkDffYpUUzrU3ojx1_Pp8m7rZFm08'
+SPREADSHEET_ID = '13NX1q6sgU-YJJxhkDffYpUUzrU3ojx1_Pp8m7rZFm08'
 
 doc = auth_sheet()
-file = g_sheets(doc, SID_MAIL)
+file = g_sheets(doc, SPREADSHEET_ID)
 
 WEBSITE = file.get('Crawler', 'B2')
 w_sheet = file.get('Crawler', 'B3')
@@ -60,11 +60,7 @@ if any(info is None for info in [WEBSITE, w_sheet, root, child, name]):
     file.update('Crawler', data=[['Info missing']])
     sys.exit()
 
-print("Sending request to website...")
 file.update('Crawler', data=[['Requesting Website...']])
-
-'''with open('C:/Users/HP/Desktop/cse_iitb.html') as fp:
-    con =BeautifulSoup(fp, 'lxml')'''
 
 try:
     webpage = requests.get(WEBSITE)
@@ -73,7 +69,6 @@ try:
 except:
     file.update('Crawler', data=[['Some error with Website URL']])
     sys.exit()
-print("Request successfull\n",'-----------')
 
 values = []
 try:
@@ -92,7 +87,6 @@ except:
     file.update('Crawler', data=[['Some error in repetitive tag']])
     sys.exit()
 
-print(len(values))
 file.update('Crawler', data=[['Appending Data']])
-#file.append(sheet=w_sheet, data=values)
+file.append(sheet=w_sheet, data=values)
 file.update('Crawler', data=[[f'Data appended to {w_sheet}']])
